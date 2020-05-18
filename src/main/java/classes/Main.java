@@ -39,8 +39,14 @@ public class Main {
                     else
                         amount = (long) (Math.random() * 50000 + 60000);
 
+                    //проверка остатка на счете
+                    bank.getBalance(bank.getRandomAccount().getAccNumber());
+
+                    //выполнение перевода между счетами
                     bank.transfer(bank.getRandomAccount().getAccNumber(),
                             bank.getRandomAccount().getAccNumber(), amount);
+
+                    bank.getBalance(bank.getRandomAccount().getAccNumber());
             }
                 catch (InterruptedException e){
                     System.out.println(e.getMessage());
