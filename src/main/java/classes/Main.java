@@ -21,32 +21,36 @@ public class Main {
          *  банка, а также информация по определенным транзакциям;
          */
 
+        final int ACCOUNT_NUM = 10;
+        final int TRANSFER_NUM = 1000;
+        final int THREAD_NUM = 10;
+
         Bank bank = new Bank();
         ArrayList<Thread> threadList = new ArrayList<>();
 
         //добавлене счетов в банк
-        for (int i = 0; i < 100; i++){
+        for (int i = 0; i < ACCOUNT_NUM; i++){
             bank.addAccount(new Account((long) (Math.random() * 10000000)));
         }
 
+        //вывод суммы на счетах клиентов до начала переводов
+        bank.showMoneyOnAccounts();
+
         //старт перводов между счетами
-        for(int i = 0; i < 5000; i ++){
+        for(int i = 0; i < THREAD_NUM; i ++){
             Thread currentThread = new Thread(() -> {
                 try {
-                    long amount;
-                    if (Math.random() > 0.05)
-                        amount = (long) (Math.random() * 50000);
-                    else
-                        amount = (long) (Math.random() * 50000 + 60000);
+                    for (int k = 0; k < TRANSFER_NUM; k++) {
+                        long amount;
+                        if (Math.random() > 0.05)
+                            amount = (long) (Math.random() * 50000);
+                        else
+                            amount = (long) (Math.random() * 50000 + 60000);
 
-                    //проверка остатка на счете
-                    bank.getBalance(bank.getRandomAccount().getAccNumber());
-
-                    //выполнение перевода между счетами
-                    bank.transfer(bank.getRandomAccount().getAccNumber(),
-                            bank.getRandomAccount().getAccNumber(), amount);
-
-                    bank.getBalance(bank.getRandomAccount().getAccNumber());
+                        //выполнение перевода между счетами
+                        bank.transfer(bank.getRandomAccount(ACCOUNT_NUM).getAccNumber(),
+                                bank.getRandomAccount(ACCOUNT_NUM).getAccNumber(), amount);
+                    }
             }
                 catch (InterruptedException e){
                     System.out.println(e.getMessage());
@@ -63,6 +67,7 @@ public class Main {
         bank.getBankInfo();
         System.out.println();
         bank.getTransactionInfo(1);
-        bank.getTransactionInfo(4000);
+        //вывод суммы на счетах клиентов до начала переводов
+        bank.showMoneyOnAccounts();
     }
 }

@@ -20,16 +20,14 @@ public class Transaction {
         statusList.add(dateFormat.format(new Date()) + " ||||Create new transaction");
     }
 
-    public void doTransaction(Account fromAcc, Account toAcc, long amount){
+    public synchronized void doTransaction(Account fromAcc, Account toAcc, long amount){
 
-        boolean getMoney = false;
         //добавляем статус начала транзакции
         statusList.add(dateFormat.format(new Date()) + " ||||Start transfer transaction from account: " + fromAcc.getAccNumber() + ", to account: " + toAcc.getAccNumber());
 
         try {
             statusList.add(dateFormat.format(new Date()) + " ||||Get money from account " + fromAcc.getAccNumber() + " - start");
             fromAcc.getMoneyFromAcc(amount);
-            getMoney = true;
             statusList.add(dateFormat.format(new Date()) + " ||||Get money from account " + fromAcc.getAccNumber() + " - successful");
 
             statusList.add(dateFormat.format(new Date()) + " ||||Put money to account " + fromAcc.getAccNumber() + " - start");
@@ -45,13 +43,6 @@ public class Transaction {
         }
         catch (AccountLockedException accountException){
             statusList.add(accountException.getMessage());
-
-            /*если после снятия средств с первого счета невозможно выполнить операцию по внесению средств,
-            то выполнение транзакции останавливается и средства возвращаются на счет.*/
-            if (getMoney) {
-                fromAcc.returnMoney(amount);
-                statusList.add(dateFormat.format(new Date()) + " ||||Money return to account: " + fromAcc.getAccNumber());
-            }
             statusList.add(dateFormat.format(new Date()) + " ||||Transaction stopped.");
         }
     }

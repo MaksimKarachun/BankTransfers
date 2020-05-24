@@ -36,7 +36,7 @@ public class Account
         return stateOfAccount;
     }
 
-    public void setStateOfAccount(StateOfAccount stateOfAccount) {
+    public synchronized void setStateOfAccount(StateOfAccount stateOfAccount) {
         this.stateOfAccount = stateOfAccount;
     }
 
@@ -60,9 +60,5 @@ public class Account
             else
                 throw new BallanceException("Not enough money in the account");
         }
-    }
-
-    public synchronized void returnMoney(long amount){
-        money = money + amount;
     }
 }

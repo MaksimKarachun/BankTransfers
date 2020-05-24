@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Bank
 {
     private int accountIndex;
-    private HashMap<Integer, Account> accounts = new HashMap<>();
+    private Map<Integer, Account> accounts = new HashMap<>();
     private final Random random = new Random();
     public volatile AtomicInteger blockedTransaction = new AtomicInteger();
     public volatile AtomicInteger count = new AtomicInteger();
@@ -32,37 +32,38 @@ public class Bank
      * счетов (как – на ваше усмотрение)
      */
     public void transfer(String fromAccountNum, String toAccountNum, long amount) throws InterruptedException {
+
             int fromAccIndex = getAccountIndex(fromAccountNum);
             int toAccIndex = getAccountIndex(toAccountNum);
 
             //счетчик общего количества запросов
             count.incrementAndGet();
 
-            //ечли счет заблокирован выводим сообщение о невозможности выполнить транзкцию
+            //если счет заблокирован выводим сообщение о невозможности выполнить транзкцию
             if (accounts.get(fromAccIndex).getStateOfAccount() == StateOfAccount.LOCKED ||
                     accounts.get(toAccIndex).getStateOfAccount() == StateOfAccount.LOCKED) {
                 blockedTransaction.incrementAndGet();
                 return;
             }
 
-            //выполнение транзакции
-            doTransaction(fromAccIndex, toAccIndex, amount);
+                //выполнение транзакции
+                doTransaction(fromAccIndex, toAccIndex, amount);
 
-            //если сумма перевода больше 50000 то после проведения, транзакция проверяетя службой безопасности
-            if (amount > 50000) {
-                if (isFraud()) {
-                    accounts.get(fromAccIndex).setStateOfAccount(StateOfAccount.LOCKED);
-                    accounts.get(toAccIndex).setStateOfAccount(StateOfAccount.LOCKED);
+                //если сумма перевода больше 50000 то после проведения, транзакция проверяется службой безопасности
+                if (amount > 50000) {
+                    if (isFraud()) {
+                        accounts.get(fromAccIndex).setStateOfAccount(StateOfAccount.LOCKED);
+                        accounts.get(toAccIndex).setStateOfAccount(StateOfAccount.LOCKED);
+                    }
                 }
-            }
     }
 
     /**
      * TODO: реализовать метод. Возвращает остаток на счёте.
      */
-    public long getBalance(String accountNum)
+    public long getBalance(String accNum)
     {
-        return accounts.get(getAccountIndex(accountNum)).getMoney();
+        return accounts.get(getAccountIndex(accNum)).getMoney();
     }
 
     public void addAccount(Account account){
@@ -72,34 +73,33 @@ public class Bank
 
     //метод выполняет транзакцию
     private void doTransaction(Integer fromAcc, Integer toAcc, long amount){
-            Transaction transaction = new Transaction();
-            transactionsList.add(transaction);
-            transaction.doTransaction(accounts.get(fromAcc), accounts.get(toAcc), amount);
+                Transaction transaction = new Transaction();
+                transactionsList.add(transaction);
+                transaction.doTransaction(accounts.get(fromAcc), accounts.get(toAcc), amount);
 
             /*проверка на выполнение(невыполнение) транзакции по переводу средств.
             инкрементирование соответствующего счетчика.*/
-            if (transaction.transactionSuccessful())
-                successfulTransactions.incrementAndGet();
-            else
-                stoppedTransactions.incrementAndGet();
-
+                if (transaction.transactionSuccessful())
+                    successfulTransactions.incrementAndGet();
+                else
+                    stoppedTransactions.incrementAndGet();
     }
 
     //метод возвращает индекс аккаунта по его номеру
     public Integer getAccountIndex(String accountNum){
         int index = 0;
-        for(Map.Entry entry : accounts.entrySet()){
-            Account acc = (Account) entry.getValue();
+        for(Map.Entry<Integer, Account> entry : accounts.entrySet()){
+            Account acc = entry.getValue();
             if(acc.getAccNumber().equals(accountNum))
-                index = (int) entry.getKey();
+                index = entry.getKey();
         }
         return index;
     }
 
     /*получение случайного аккаунта из списка аккаунтов банка.
     метод для проверки работы программы.*/
-    public Account getRandomAccount(){
-        return accounts.get((int) ((Math.random() * 100) + 1));
+    public Account getRandomAccount(Integer accNum){
+        return accounts.get((int) ((Math.random() * accNum) + 1));
     }
 
     //получение итоговой информации по работе банка
@@ -118,5 +118,13 @@ public class Bank
 
     public void getTransactionInfo(int id){
         transactionsList.get(id).getTransactionInfo();
+    }
+
+    public void showMoneyOnAccounts(){
+        long sum = 0;
+        for (Map.Entry<Integer, Account> entry : accounts.entrySet()){
+            sum = sum + entry.getValue().getMoney();
+        }
+        System.out.println("На счетах клиентов: " + sum);
     }
 }
