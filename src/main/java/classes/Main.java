@@ -22,7 +22,7 @@ public class Main {
          */
 
         final int ACCOUNT_NUM = 10;
-        final int TRANSFER_NUM = 1000;
+        final int TRANSFER_NUM = 1000000;
         final int THREAD_NUM = 10;
 
         Bank bank = new Bank();
@@ -42,7 +42,7 @@ public class Main {
                 try {
                     for (int k = 0; k < TRANSFER_NUM; k++) {
                         long amount;
-                        if (Math.random() > 0.05)
+                        if (Math.random() > 0.0001)
                             amount = (long) (Math.random() * 50000);
                         else
                             amount = (long) (Math.random() * 50000 + 60000);

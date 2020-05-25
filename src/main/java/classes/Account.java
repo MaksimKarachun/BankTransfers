@@ -61,4 +61,8 @@ public class Account
                 throw new BallanceException("Not enough money in the account");
         }
     }
+
+    public void returnMoney(long amount){
+        money = money + amount;
+    }
 }

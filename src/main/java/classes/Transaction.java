@@ -13,6 +13,7 @@ public class Transaction {
     private int id = 0;
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy:MM:dd HH:mm:ss");
     private boolean done = false;
+    private boolean getMoney = false;
 
     public Transaction() {
         count++;
@@ -29,6 +30,7 @@ public class Transaction {
             statusList.add(dateFormat.format(new Date()) + " ||||Get money from account " + fromAcc.getAccNumber() + " - start");
             fromAcc.getMoneyFromAcc(amount);
             statusList.add(dateFormat.format(new Date()) + " ||||Get money from account " + fromAcc.getAccNumber() + " - successful");
+            getMoney = true;
 
             statusList.add(dateFormat.format(new Date()) + " ||||Put money to account " + fromAcc.getAccNumber() + " - start");
             toAcc.putMoneyToAcc(amount);
@@ -42,6 +44,11 @@ public class Transaction {
             statusList.add(dateFormat.format(new Date()) + " ||||Transaction was stopped.");
         }
         catch (AccountLockedException accountException){
+            /*если во время перевода заблокировали аккаунт на который переводятся средства, то операция отменяется и
+            деньги возвращаются на счет с которого делался перевод*/
+            if (getMoney){
+                cancelTransaction(fromAcc, amount);
+            }
             statusList.add(accountException.getMessage());
             statusList.add(dateFormat.format(new Date()) + " ||||Transaction stopped.");
         }
@@ -61,5 +68,9 @@ public class Transaction {
 
     public boolean transactionSuccessful(){
         return done;
+    }
+
+    private void cancelTransaction(Account account, long amount){
+        account.returnMoney(amount);
     }
 }
