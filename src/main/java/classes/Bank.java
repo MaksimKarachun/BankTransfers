@@ -11,11 +11,6 @@ public class Bank
     private int accountIndex;
     private Map<Integer, Account> accounts = new HashMap<>();
     private final Random random = new Random();
-    public volatile AtomicInteger blockedTransaction = new AtomicInteger();
-    public volatile AtomicInteger count = new AtomicInteger();
-    private volatile AtomicInteger successfulTransactions = new AtomicInteger();
-    private volatile AtomicInteger stoppedTransactions = new AtomicInteger();
-    private CopyOnWriteArrayList<Transaction> transactionsList = new CopyOnWriteArrayList<>();
 
     public synchronized boolean isFraud()
         throws InterruptedException
@@ -36,24 +31,35 @@ public class Bank
             int fromAccIndex = getAccountIndex(fromAccountNum);
             int toAccIndex = getAccountIndex(toAccountNum);
 
-            //счетчик общего количества запросов
-            count.incrementAndGet();
-
+            Account fromAccount = accounts.get(fromAccIndex);
+            Account toAccount = accounts.get(toAccIndex);
             //если счет заблокирован выводим сообщение о невозможности выполнить транзкцию
-            if (accounts.get(fromAccIndex).getStateOfAccount() == StateOfAccount.LOCKED ||
-                    accounts.get(toAccIndex).getStateOfAccount() == StateOfAccount.LOCKED) {
-                blockedTransaction.incrementAndGet();
+            if (!fromAccount.getStateOfAccount() ||
+                    !toAccount.getStateOfAccount()) {
                 return;
             }
 
-                //выполнение транзакции
-                doTransaction(fromAccIndex, toAccIndex, amount);
+            if (fromAccIndex < toAccIndex) {
+                synchronized (fromAccount) {
+                    synchronized (toAccount) {
+                        //выполнение транзакции
+                        doTransaction(fromAccount, toAccount, amount);
+                    }
+                }
+            }
+            else
+                synchronized (toAccount) {
+                    synchronized (fromAccount) {
+                        //выполнение транзакции
+                        doTransaction(fromAccount, toAccount, amount);
+                    }
+                }
 
                 //если сумма перевода больше 50000 то после проведения, транзакция проверяется службой безопасности
                 if (amount > 50000) {
                     if (isFraud()) {
-                        accounts.get(fromAccIndex).setStateOfAccount(StateOfAccount.LOCKED);
-                        accounts.get(toAccIndex).setStateOfAccount(StateOfAccount.LOCKED);
+                        fromAccount.setStateOfAccount(false);
+                        toAccount.setStateOfAccount(false);
                     }
                 }
     }
@@ -72,17 +78,17 @@ public class Bank
     }
 
     //метод выполняет транзакцию
-    private void doTransaction(Integer fromAcc, Integer toAcc, long amount){
+    private void doTransaction(Account fromAcc, Account toAcc, long amount){
                 Transaction transaction = new Transaction();
-                transactionsList.add(transaction);
-                transaction.doTransaction(accounts.get(fromAcc), accounts.get(toAcc), amount);
+                //transactionsList.add(transaction);
+                transaction.doTransaction(fromAcc, toAcc, amount);
 
             /*проверка на выполнение(невыполнение) транзакции по переводу средств.
             инкрементирование соответствующего счетчика.*/
-                if (transaction.transactionSuccessful())
+                /*if (transaction.transactionSuccessful())
                     successfulTransactions.incrementAndGet();
                 else
-                    stoppedTransactions.incrementAndGet();
+                    stoppedTransactions.incrementAndGet();*/
     }
 
     //метод возвращает индекс аккаунта по его номеру
@@ -103,7 +109,7 @@ public class Bank
     }
 
     //получение итоговой информации по работе банка
-    public void getBankInfo(){
+    /*public void getBankInfo(){
         System.out.println("================================================================");
         System.out.println("======================Bank Information list=====================");
         System.out.println("================================================================");
@@ -114,11 +120,11 @@ public class Bank
         System.out.println("Количecтво выполненных транзакций: " + successfulTransactions);
         System.out.println("Количecтво остановленных транзакций: " + stoppedTransactions);
         System.out.println("================================================================");
-    }
+    }*/
 
-    public void getTransactionInfo(int id){
+    /*public void getTransactionInfo(int id){
         transactionsList.get(id).getTransactionInfo();
-    }
+    }*/
 
     public void showMoneyOnAccounts(){
         long sum = 0;

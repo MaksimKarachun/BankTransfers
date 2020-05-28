@@ -35,18 +35,17 @@ public class Main {
 
         //вывод суммы на счетах клиентов до начала переводов
         bank.showMoneyOnAccounts();
-
+        long start = System.currentTimeMillis();
         //старт перводов между счетами
         for(int i = 0; i < THREAD_NUM; i ++){
             Thread currentThread = new Thread(() -> {
                 try {
                     for (int k = 0; k < TRANSFER_NUM; k++) {
                         long amount;
-                        if (Math.random() > 0.0001)
+                        /*if (Math.random() > 0.0001)*/
                             amount = (long) (Math.random() * 50000);
-                        else
-                            amount = (long) (Math.random() * 50000 + 60000);
-
+                       /* else
+                            amount = (long) (Math.random() * 50000 + 60000);*/
                         //выполнение перевода между счетами
                         bank.transfer(bank.getRandomAccount(ACCOUNT_NUM).getAccNumber(),
                                 bank.getRandomAccount(ACCOUNT_NUM).getAccNumber(), amount);
@@ -63,10 +62,10 @@ public class Main {
         //ожидание завершения потоков
         for (Thread thread : threadList)
             thread.join();
-
-        bank.getBankInfo();
+        System.out.println((System.currentTimeMillis() - start) / 1000);
+        //bank.getBankInfo();
         System.out.println();
-        bank.getTransactionInfo(1);
+        //bank.getTransactionInfo(1);
         //вывод суммы на счетах клиентов до начала переводов
         bank.showMoneyOnAccounts();
     }

@@ -4,14 +4,14 @@ import TransactionExceptions.*;
 
 public class Account
 {
-    private volatile long money;
+    private long money;
     private String accNumber;
-    private volatile StateOfAccount stateOfAccount;
+    private boolean accountWork;
 
     public Account(long money) {
         this.money = money;
         accNumber = generationAccNumber();
-        stateOfAccount = StateOfAccount.WORKS;
+        accountWork = true;
     }
 
     private String generationAccNumber(){
@@ -32,25 +32,25 @@ public class Account
         return accNumber;
     }
 
-    public StateOfAccount getStateOfAccount() {
-        return stateOfAccount;
+    public boolean getStateOfAccount() {
+        return accountWork;
     }
 
-    public synchronized void setStateOfAccount(StateOfAccount stateOfAccount) {
-        this.stateOfAccount = stateOfAccount;
+    public void setStateOfAccount(Boolean accountWork) {
+        this.accountWork = accountWork;
     }
 
-    public synchronized void putMoneyToAcc(long amount) throws AccountLockedException {
+    public void putMoneyToAcc(long amount) throws AccountLockedException {
         //если аккаунт заблокирован генерируем исключение
-        if (stateOfAccount == StateOfAccount.LOCKED)
+        if (!accountWork)
             throw new AccountLockedException("Acount " + this.accNumber + " locked. Cant put money on account.");
         else
             money = money + amount;
     }
 
-    public synchronized void getMoneyFromAcc(long amount) throws BallanceException, AccountLockedException {
+    public void getMoneyFromAcc(long amount) throws BallanceException, AccountLockedException {
         //если аккаунт заблокирован генерируем исключение
-        if (stateOfAccount == StateOfAccount.LOCKED)
+        if (!accountWork)
             throw new AccountLockedException("Acount " + this.accNumber + " locked. Cant get money from account.");
         else {
             //если не хватает средств для выполнения ранзакции генерируем исключение
